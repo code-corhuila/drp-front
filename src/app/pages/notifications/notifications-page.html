@@ -1,0 +1,17 @@
+<h1>Avisos</h1>
+<p class="lead">HU-RES-007 · bandeja data/meta</p>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+@if (rows().length === 0 && !error()) {
+  <p class="lead">No hay avisos todavía. Confirma un pago para ver ReservationConfirmed.</p>
+}
+@for (row of rows(); track row.id) {
+  <div class="space">
+    <div>
+      <strong>{{ row.eventType }}</strong> · {{ row.channel }}<br />
+      <span class="muted">{{ row.createdAt }}</span>
+    </div>
+    <span class="tag">{{ row.state }}</span>
+  </div>
+}

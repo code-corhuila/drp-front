@@ -1,0 +1,16 @@
+<h1>Espacios · consola SpaceHub</h1>
+<p class="lead">HU-RES-008 · catálogo completo (ADMIN). USER redirigido.</p>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+@for (space of rows(); track space.id) {
+  <div class="space">
+    <div>
+      <strong>{{ space.name }}</strong> · {{ kindLabels[space.kind] }} · {{ space.capacity }} personas
+      @if (space.amountCents) {
+        <br /><span class="muted">{{ formatCop(space.amountCents) }}</span>
+      }
+    </div>
+    <span class="tag">{{ space.available ? 'OK' : 'Bloqueado' }}</span>
+  </div>
+}
