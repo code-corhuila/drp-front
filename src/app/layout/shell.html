@@ -1,0 +1,38 @@
+<header>
+  <div class="brand">
+    <strong>SpaceHub</strong>
+    <span>DRP</span>
+  </div>
+  <nav>
+    <a routerLink="/spaces" routerLinkActive="on">Espacios</a>
+    <a routerLink="/reservations" routerLinkActive="on">Reservas</a>
+    <a routerLink="/notifications" routerLinkActive="on">Avisos</a>
+    @if (auth.user()?.role === 'ADMIN') {
+      <a routerLink="/admin/spaces" routerLinkActive="on">Admin</a>
+    }
+  </nav>
+  <div class="session">
+    <span class="chip">{{ auth.user()?.role }}</span>
+    <span class="who">{{ auth.user()?.displayName || auth.user()?.email }}</span>
+    <a class="ghost" routerLink="/login" (click)="signOut()">Cerrar sesión</a>
+  </div>
+</header>
+
+@if (auth.usingSynthetic()) {
+  <div class="banner" role="status">
+    Datos sintéticos — contrato 07-api; gateway no disponible
+  </div>
+}
+
+<main class="layout">
+  <section class="phone">
+    <router-outlet />
+  </section>
+  <aside>
+    <h2>Este paso lo atiende</h2>
+    <p class="svc-note">
+      Angular es el shell. Los portales de dominio (<code>drp-*-portal</code>) se extraerán después;
+      en Corte 2 el flujo completo vive aquí para que el cliente lo vea de extremo a extremo.
+    </p>
+  </aside>
+</main>

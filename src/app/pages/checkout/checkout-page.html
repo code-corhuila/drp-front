@@ -1,0 +1,16 @@
+<h1>Pago</h1>
+<p class="lead">HU-RES-005 · el mismo Idempotency-Key no cobra dos veces</p>
+@if (reservation(); as reservation) {
+  <p>
+    Reserva <code>{{ reservation.id }}</code><br />
+    {{ space()?.name }}<br />
+    {{ formatPeriod(reservation.startAt, reservation.endAt) }}<br />
+    <strong>Total {{ formatCop(amountCents) }}</strong>
+    <span class="muted"> ({{ amountCents }} amountCents · COP)</span>
+  </p>
+}
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+<button class="btn" type="button" [disabled]="busy() || !reservation()" (click)="pay()">Pagar</button>
+<p><a routerLink="/reservations">Ver mis reservas</a></p>
