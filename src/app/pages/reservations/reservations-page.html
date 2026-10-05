@@ -1,0 +1,17 @@
+<h1>Mis reservas</h1>
+<p class="lead">HU-RES-004 · listado data/meta</p>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+@if (rows().length === 0 && !error()) {
+  <p class="lead">Aún no tienes reservas.</p>
+}
+@for (row of rows(); track row.id) {
+  <a class="space linkish" [routerLink]="['/reservations', row.id]">
+    <div>
+      <strong>{{ spaceName(row.spaceId) }}</strong><br />
+      <span class="muted">{{ formatPeriod(row.startAt, row.endAt) }}</span>
+    </div>
+    <span class="tag">{{ stateLabels[row.state] }}</span>
+  </a>
+}

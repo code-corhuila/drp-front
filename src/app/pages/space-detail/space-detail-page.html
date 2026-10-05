@@ -1,0 +1,26 @@
+<a class="back" routerLink="/spaces">← Volver a búsqueda</a>
+<h1>Detalle del espacio</h1>
+<p class="lead">HU-RES-002 · disponibilidad del periodo</p>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (space(); as space) {
+  <div class="space">
+    <div>
+      <strong>{{ space.name }}</strong> · {{ kindLabels[space.kind] }} · {{ space.capacity }} personas
+      <br />
+      <span class="muted">{{ formatPeriod(ctx.startAt(), ctx.endAt()) }}</span>
+      @if (space.amountCents) {
+        <br /><span>{{ formatCop(space.amountCents) }}</span>
+      }
+    </div>
+    @if (availability(); as av) {
+      <span class="tag">{{ av.available ? 'Libre / OK' : av.reason }}</span>
+    }
+  </div>
+  <button class="btn" type="button" [disabled]="!availability()?.available" (click)="continueToReserve()">
+    Continuar a reserva
+  </button>
+}

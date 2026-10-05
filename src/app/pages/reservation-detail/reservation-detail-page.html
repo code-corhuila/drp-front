@@ -1,0 +1,29 @@
+<a class="back" routerLink="/reservations">← Mis reservas</a>
+<h1>Reserva</h1>
+<p class="lead">HU-RES-004 · estados PAYMENT_PENDING | CONFIRMED | CANCELLED</p>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+@if (reservation(); as reservation) {
+  @if (reservation.state === 'CONFIRMED') {
+    <p>La reserva quedó <strong>CONFIRMED</strong>. Si un aviso falla, esta confirmación no se revierte (BR-006).</p>
+  }
+  <div class="space">
+    <div>
+      <strong>{{ space()?.name ?? reservation.spaceId }}</strong><br />
+      {{ formatPeriod(reservation.startAt, reservation.endAt) }}<br />
+      <span class="muted">id {{ reservation.id }}</span>
+    </div>
+    <span class="tag">{{ stateLabels[reservation.state] }}</span>
+  </div>
+  @if (space()?.amountCents) {
+    <p>{{ formatCop(space()!.amountCents!) }}</p>
+  }
+  @if (reservation.state === 'PAYMENT_PENDING') {
+    <button class="btn" type="button" (click)="goPay()">Ir a pagar</button>
+  }
+  @if (canCancel()) {
+    <button class="btn sec" type="button" [disabled]="busy()" (click)="cancel()">Cancelar reserva</button>
+  }
+}
+<p><a routerLink="/notifications">Ver avisos</a></p>
