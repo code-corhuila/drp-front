@@ -59,7 +59,9 @@ export class FailoverSpacehubApi extends SpacehubApi {
   }
 
   createReservation(body: CreateReservationRequest, idempotencyKey: string): Promise<Reservation> {
-    return this.withFailover((api) => api.createReservation(body, idempotencyKey));
+    return this.withFailover((api) => api.createReservation(body, idempotencyKey), {
+      allowSyntheticWrite: false,
+    });
   }
 
   getReservation(reservationId: string): Promise<Reservation> {
@@ -71,11 +73,15 @@ export class FailoverSpacehubApi extends SpacehubApi {
   }
 
   cancelReservation(reservationId: string, reason?: string): Promise<Reservation> {
-    return this.withFailover((api) => api.cancelReservation(reservationId, reason));
+    return this.withFailover((api) => api.cancelReservation(reservationId, reason), {
+      allowSyntheticWrite: false,
+    });
   }
 
   createPayment(body: CreatePaymentRequest, idempotencyKey: string): Promise<Payment> {
-    return this.withFailover((api) => api.createPayment(body, idempotencyKey));
+    return this.withFailover((api) => api.createPayment(body, idempotencyKey), {
+      allowSyntheticWrite: false,
+    });
   }
 
   getPayment(paymentId: string): Promise<Payment> {
@@ -86,7 +92,11 @@ export class FailoverSpacehubApi extends SpacehubApi {
     return this.withFailover((api) => api.listNotifications(query));
   }
 
-  private async withFailover<T>(op: (api: SpacehubApi) => Promise<T>): Promise<T> {
+  private async withFailover<T>(
+    op: (api: SpacehubApi) => Promise<T>,
+    opts: { allowSyntheticWrite?: boolean } = {},
+  ): Promise<T> {
+    const allowSyntheticWrite = opts.allowSyntheticWrite !== false;
     if (environment.mode === 'synthetic' || this.stickySynthetic) {
       this.auth.usingSynthetic.set(true);
       return op(this.syntheticApi);
@@ -100,10 +110,20 @@ export class FailoverSpacehubApi extends SpacehubApi {
       this.auth.usingSynthetic.set(false);
       return result;
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ApiError && error.status < 500) {
         throw error;
       }
       if (isFailoverTrigger(error)) {
+        if (!allowSyntheticWrite) {
+          throw new ApiError(
+            {
+              error: 'SERVICE_UNAVAILABLE',
+              message:
+                'El gateway no confirmó esta escritura. No se simula un pago ni una reserva.',
+            },
+            503,
+          );
+        }
         this.stickySynthetic = true;
         this.auth.usingSynthetic.set(true);
         return op(this.syntheticApi);
