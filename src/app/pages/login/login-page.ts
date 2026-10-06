@@ -15,8 +15,8 @@ export class LoginPage {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
 
-  email = 'member@spacehub.local';
-  password = 'Spacehub1!';
+  email = '';
+  password = '';
   readonly busy = signal(false);
   readonly error = signal('');
 
