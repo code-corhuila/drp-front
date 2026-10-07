@@ -4,7 +4,7 @@ import { Reservation, Space } from '../../contract/types';
 import { SpacehubApi } from '../../contract/spacehub-api';
 import { errorMessage } from '../../util/error-message';
 import { formatPeriod } from '../../util/datetime';
-import { formatCop, STATE_LABELS } from '../../util/labels';
+import { formatCop, STATE_LABELS, stampClass } from '../../util/labels';
 
 @Component({
   selector: 'app-reservation-detail-page',
@@ -19,6 +19,7 @@ export class ReservationDetailPage implements OnInit {
   readonly formatPeriod = formatPeriod;
   readonly formatCop = formatCop;
   readonly stateLabels = STATE_LABELS;
+  readonly stampClass = stampClass;
   readonly reservation = signal<Reservation | null>(null);
   readonly space = signal<Space | null>(null);
   readonly error = signal('');

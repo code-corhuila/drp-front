@@ -1,29 +1,33 @@
-<a class="back" routerLink="/reservations">← Mis reservas</a>
-<h1>Reserva</h1>
-<p class="lead">HU-RES-004 · estados PAYMENT_PENDING | CONFIRMED | CANCELLED</p>
+<a class="back" routerLink="/reservations">← Mis fichas</a>
+<p class="kicker">Stub · HU-RES-004 / 006</p>
+<h1>La ficha del hueco</h1>
+<p class="lead">Estados <code>PAYMENT_PENDING | CONFIRMED | CANCELLED</code>.</p>
 @if (error()) {
   <p class="error">{{ error() }}</p>
 }
 @if (reservation(); as reservation) {
   @if (reservation.state === 'CONFIRMED') {
-    <p>La reserva quedó <strong>CONFIRMED</strong>. Si un aviso falla, esta confirmación no se revierte (BR-006).</p>
+    <p class="warn">La reserva quedó <strong>CONFIRMED</strong>. Si un aviso falla, este stub no se revierte (BR-006).</p>
   }
-  <div class="space">
+  <article class="ticket">
+    <span class="ticket-perf" aria-hidden="true"></span>
     <div>
       <strong>{{ space()?.name ?? reservation.spaceId }}</strong><br />
       {{ formatPeriod(reservation.startAt, reservation.endAt) }}<br />
-      <span class="muted">id {{ reservation.id }}</span>
+      <span class="ticket-id">id {{ reservation.id }}</span>
     </div>
-    <span class="tag">{{ stateLabels[reservation.state] }}</span>
-  </div>
+    <span [class]="stampClass(reservation.state)">{{ stateLabels[reservation.state] }}</span>
+  </article>
   @if (space()?.amountCents) {
-    <p>{{ formatCop(space()!.amountCents!) }}</p>
+    <p class="venue-rate">{{ formatCop(space()!.amountCents!) }}</p>
   }
-  @if (reservation.state === 'PAYMENT_PENDING') {
-    <button class="btn" type="button" (click)="goPay()">Ir a pagar</button>
-  }
-  @if (canCancel()) {
-    <button class="btn sec" type="button" [disabled]="busy()" (click)="cancel()">Cancelar reserva</button>
-  }
+  <div class="actions">
+    @if (reservation.state === 'PAYMENT_PENDING') {
+      <button class="btn" type="button" (click)="goPay()">Ir a caja</button>
+    }
+    @if (canCancel()) {
+      <button class="btn sec" type="button" [disabled]="busy()" (click)="cancel()">Anular ficha</button>
+    }
+  </div>
 }
-<p><a routerLink="/notifications">Ver avisos</a></p>
+<p><a class="back" routerLink="/notifications">Ver el tablón</a></p>

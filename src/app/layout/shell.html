@@ -1,26 +1,29 @@
 <header>
   <div class="brand">
-    <strong>SpaceHub</strong>
-    <span>DRP</span>
+    <span class="mark" aria-hidden="true"></span>
+    <div>
+      <strong>SpaceHub</strong>
+      <span>Mostrador de espacios</span>
+    </div>
   </div>
   <nav>
-    <a routerLink="/spaces" routerLinkActive="on">Espacios</a>
-    <a routerLink="/reservations" routerLinkActive="on">Reservas</a>
-    <a routerLink="/notifications" routerLinkActive="on">Avisos</a>
+    <a routerLink="/spaces" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Huecos</a>
+    <a routerLink="/reservations" routerLinkActive="on">Fichas</a>
+    <a routerLink="/notifications" routerLinkActive="on">Tablón</a>
     @if (auth.user()?.role === 'ADMIN') {
-      <a routerLink="/admin/spaces" routerLinkActive="on">Admin</a>
+      <a routerLink="/admin/spaces" routerLinkActive="on">Inventario</a>
     }
   </nav>
   <div class="session">
     <span class="chip">{{ auth.user()?.role }}</span>
     <span class="who">{{ auth.user()?.displayName || auth.user()?.email }}</span>
-    <a class="ghost" routerLink="/login" (click)="signOut()">Cerrar sesión</a>
+    <a class="ghost" routerLink="/login" (click)="signOut()">Cerrar ficha</a>
   </div>
 </header>
 
 @if (auth.usingSynthetic()) {
   <div class="banner" role="status">
-    Datos sintéticos — contrato 07-api; gateway no disponible
+    Mostrador en failover — contrato 07-api; el gateway no está en el mostrador
   </div>
 }
 
@@ -28,11 +31,16 @@
   <section class="phone">
     <router-outlet />
   </section>
-  <aside>
-    <h2>Este paso lo atiende</h2>
-    <p class="svc-note">
-      Angular es el shell. Los portales de dominio (<code>drp-*-portal</code>) se extraerán después;
-      en Corte 2 el flujo completo vive aquí para que el cliente lo vea de extremo a extremo.
-    </p>
+  <aside class="desk-slip">
+    <p class="kicker">Trámite en curso</p>
+    <h2>{{ deskTitle() }}</h2>
+    <ol class="stamps">
+      <li [class.on]="step() === 'search' || step() === 'space'">1 Buscar hueco</li>
+      <li [class.on]="step() === 'create'">2 Fichar reserva</li>
+      <li [class.on]="step() === 'pay'">3 Pagar en caja</li>
+      <li [class.on]="step() === 'status' || step() === 'inbox'">4 Stub confirmado</li>
+    </ol>
+    <p class="svc-note">{{ deskCopy() }}</p>
+    <p class="owner">Lo atiende <code>{{ owner() }}</code></p>
   </aside>
 </main>

@@ -5,7 +5,7 @@ import { SpacehubApi } from '../../contract/spacehub-api';
 import { Space, SpaceKind } from '../../contract/types';
 import { SearchContext } from '../../core/search-context';
 import { errorMessage } from '../../util/error-message';
-import { formatCop, KIND_LABELS } from '../../util/labels';
+import { formatCop, KIND_LABELS, kindTone } from '../../util/labels';
 
 @Component({
   selector: 'app-spaces-page',
@@ -27,6 +27,7 @@ export class SpacesPage implements OnInit {
   ];
   readonly kindLabels = KIND_LABELS;
   readonly formatCop = formatCop;
+  readonly kindTone = kindTone;
   readonly spaces = signal<Space[]>([]);
   readonly total = signal(0);
   readonly busy = signal(false);
