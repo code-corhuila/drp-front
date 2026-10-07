@@ -5,7 +5,7 @@ import { SpacehubApi } from '../../contract/spacehub-api';
 import { SearchContext } from '../../core/search-context';
 import { errorMessage } from '../../util/error-message';
 import { formatPeriod } from '../../util/datetime';
-import { formatCop, KIND_LABELS } from '../../util/labels';
+import { formatCop, KIND_LABELS, kindTone } from '../../util/labels';
 
 @Component({
   selector: 'app-space-detail-page',
@@ -20,6 +20,7 @@ export class SpaceDetailPage implements OnInit {
 
   readonly kindLabels = KIND_LABELS;
   readonly formatCop = formatCop;
+  readonly kindTone = kindTone;
   readonly formatPeriod = formatPeriod;
   readonly space = signal<Space | null>(null);
   readonly availability = signal<Availability | null>(null);

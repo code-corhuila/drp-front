@@ -1,13 +1,14 @@
-<h1>Buscar espacios</h1>
-<p class="lead">HU-RES-001 · disponibilidad por periodo</p>
+<p class="kicker">Huecos · HU-RES-001</p>
+<h1>Salas libres en ese periodo</h1>
+<p class="lead">Escribe el inicio y el fin. El mostrador no muestra una grilla de todo el día: solo lo que cabe en tu hueco.</p>
 
 <form class="filters" (ngSubmit)="search()">
   <div>
-    <label for="startAt">Inicio</label>
+    <label for="startAt">Desde</label>
     <input id="startAt" type="datetime-local" [ngModel]="ctx.startLocal()" (ngModelChange)="ctx.startLocal.set($event)" name="startAt" required />
   </div>
   <div>
-    <label for="endAt">Fin</label>
+    <label for="endAt">Hasta</label>
     <input id="endAt" type="datetime-local" [ngModel]="ctx.endLocal()" (ngModelChange)="ctx.endLocal.set($event)" name="endAt" required />
   </div>
   <div>
@@ -22,10 +23,10 @@
     </select>
   </div>
   <div>
-    <label for="minCapacity">Capacidad mín.</label>
+    <label for="minCapacity">Cupos mín.</label>
     <input id="minCapacity" type="number" min="1" [ngModel]="ctx.minCapacity()" (ngModelChange)="ctx.minCapacity.set($event === '' ? '' : +$event)" name="minCapacity" />
   </div>
-  <button class="btn" type="submit" [disabled]="busy()">Buscar</button>
+  <button class="btn" type="submit" [disabled]="busy()">Buscar hueco</button>
 </form>
 
 @if (error()) {
@@ -33,22 +34,23 @@
 }
 
 @if (searched() && spaces().length === 0) {
-  <p class="lead">No hay espacios libres en ese periodo.</p>
+  <p class="lead">No hay hueco libre en ese periodo. Cambia la hora o el tipo.</p>
 }
 
 @for (space of spaces(); track space.id) {
-  <div class="space">
+  <article [class]="'venue ' + kindTone(space.kind)">
+    <div class="venue-mark" aria-hidden="true"></div>
     <div>
-      <strong>{{ space.name }}</strong> · {{ kindLabels[space.kind] }} · {{ space.capacity }} personas
-      <br />
-      <span class="tag">Libre</span>
+      <strong>{{ space.name }}</strong>
+      <div class="venue-meta">{{ kindLabels[space.kind] }} · {{ space.capacity }} cupos</div>
       @if (space.amountCents) {
-        <span class="muted"> {{ formatCop(space.amountCents) }}</span>
+        <div class="venue-rate">{{ formatCop(space.amountCents) }} · {{ space.amountCents }} amountCents</div>
       }
     </div>
     <div class="actions">
-      <a class="btn sec" [routerLink]="['/spaces', space.id]" [queryParams]="{ startAt: ctx.startAt(), endAt: ctx.endAt() }">Ver</a>
+      <span class="stamp is-ok">Libre</span>
+      <a class="btn sec" [routerLink]="['/spaces', space.id]" [queryParams]="{ startAt: ctx.startAt(), endAt: ctx.endAt() }">Dossier</a>
       <button class="btn" type="button" (click)="reserve(space)">Reservar</button>
     </div>
-  </div>
+  </article>
 }

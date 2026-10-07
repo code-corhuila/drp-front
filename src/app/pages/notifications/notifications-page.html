@@ -1,17 +1,19 @@
-<h1>Avisos</h1>
-<p class="lead">HU-RES-007 · bandeja data/meta</p>
+<p class="kicker">Tablón · HU-RES-007</p>
+<h1>Notas del mostrador</h1>
+<p class="lead">Bandeja data / meta. El tablón no lee tablas ajenas.</p>
 @if (error()) {
   <p class="error">{{ error() }}</p>
 }
 @if (rows().length === 0 && !error()) {
-  <p class="lead">No hay avisos todavía. Confirma un pago para ver ReservationConfirmed.</p>
+  <p class="lead">El tablón está vacío. Confirma un pago para ver ReservationConfirmed.</p>
 }
 @for (row of rows(); track row.id) {
-  <div class="space">
+  <article class="bulletin">
+    <span class="pin" aria-hidden="true"></span>
     <div>
-      <strong>{{ row.eventType }}</strong> · {{ row.channel }}<br />
-      <span class="muted">{{ row.createdAt }}</span>
+      <strong>{{ eventLabel(row.eventType) }}</strong>
+      <div class="muted">{{ row.channel }} · {{ row.createdAt }}</div>
     </div>
-    <span class="tag">{{ row.state }}</span>
-  </div>
+    <span [class]="stampClass(row.state)">{{ row.state }}</span>
+  </article>
 }
