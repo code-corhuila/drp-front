@@ -4,7 +4,7 @@ import { Reservation } from '../../contract/types';
 import { SpacehubApi } from '../../contract/spacehub-api';
 import { errorMessage } from '../../util/error-message';
 import { formatPeriod } from '../../util/datetime';
-import { STATE_LABELS } from '../../util/labels';
+import { STATE_LABELS, stampClass } from '../../util/labels';
 
 @Component({
   selector: 'app-reservations-page',
@@ -15,6 +15,7 @@ export class ReservationsPage implements OnInit {
   private readonly api = inject(SpacehubApi);
   readonly formatPeriod = formatPeriod;
   readonly stateLabels = STATE_LABELS;
+  readonly stampClass = stampClass;
   readonly rows = signal<Reservation[]>([]);
   readonly names = signal<Record<string, string>>({});
   readonly error = signal('');

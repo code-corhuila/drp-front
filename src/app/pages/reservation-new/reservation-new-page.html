@@ -1,14 +1,19 @@
-<a class="back" [routerLink]="['/spaces', spaceId]" [queryParams]="{ startAt, endAt }">← Volver</a>
-<h1>Crear reserva</h1>
+<a class="back" [routerLink]="['/spaces', spaceId]" [queryParams]="{ startAt, endAt }">← Volver al dossier</a>
+<p class="kicker">Ficha · HU-RES-003</p>
+<h1>Abrir la reserva</h1>
 @if (space(); as space) {
-  <p class="lead">HU-RES-003 · {{ space.name }} · {{ formatPeriod(startAt, endAt) }}</p>
+  <p class="lead">{{ space.name }} · {{ formatPeriod(startAt, endAt) }}</p>
   @if (space.amountCents) {
-    <p>{{ formatCop(space.amountCents) }}</p>
+    <p class="venue-rate">{{ formatCop(space.amountCents) }} queda en caja después.</p>
   }
 }
-<p>Estado inicial: <strong>PAYMENT_PENDING</strong>. No se confirma hasta el pago (BR-003).</p>
+<p class="warn">
+  Estado inicial: <strong>PAYMENT_PENDING</strong>. El aula no se ocupa hasta que la caja confirme (BR-003).
+</p>
 @if (error()) {
   <p class="error">{{ error() }}</p>
 }
-<button class="btn sec" type="button" routerLink="/spaces">Volver</button>
-<button class="btn" type="button" [disabled]="busy() || !space()" (click)="create()">Confirmar reserva</button>
+<div class="actions">
+  <button class="btn sec" type="button" routerLink="/spaces">Volver al blotter</button>
+  <button class="btn" type="button" [disabled]="busy() || !space()" (click)="create()">Fichar reserva</button>
+</div>
