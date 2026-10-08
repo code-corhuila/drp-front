@@ -1,0 +1,32 @@
+<a class="back" routerLink="/spaces">← Volver al blotter</a>
+<p class="kicker">Dossier · HU-RES-002</p>
+<h1>Este hueco, esta sala</h1>
+<p class="lead">El periodo ya está escrito. El sello dice si se puede fichar.</p>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (space(); as space) {
+  <p class="warn">
+    Periodo pedido: <strong>{{ formatPeriod(ctx.startAt(), ctx.endAt()) }}</strong>
+  </p>
+  <article [class]="'venue ' + kindTone(space.kind)">
+    <div class="venue-mark" aria-hidden="true"></div>
+    <div>
+      <strong>{{ space.name }}</strong>
+      <div class="venue-meta">{{ kindLabels[space.kind] }} · {{ space.capacity }} cupos</div>
+      @if (space.amountCents) {
+        <div class="venue-rate">{{ formatCop(space.amountCents) }} · {{ space.amountCents }} amountCents</div>
+      }
+    </div>
+    @if (availability(); as av) {
+      <span [class]="av.available ? 'stamp is-ok' : 'stamp is-bad'">
+        {{ av.available ? 'Libre / OK' : av.reason }}
+      </span>
+    }
+  </article>
+  <button class="btn" type="button" [disabled]="!availability()?.available" (click)="continueToReserve()">
+    Fichar este hueco
+  </button>
+}

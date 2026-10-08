@@ -1,0 +1,56 @@
+<p class="kicker">Huecos · HU-RES-001</p>
+<h1>Salas libres en ese periodo</h1>
+<p class="lead">Escribe el inicio y el fin. El mostrador no muestra una grilla de todo el día: solo lo que cabe en tu hueco.</p>
+
+<form class="filters" (ngSubmit)="search()">
+  <div>
+    <label for="startAt">Desde</label>
+    <input id="startAt" type="datetime-local" [ngModel]="ctx.startLocal()" (ngModelChange)="ctx.startLocal.set($event)" name="startAt" required />
+  </div>
+  <div>
+    <label for="endAt">Hasta</label>
+    <input id="endAt" type="datetime-local" [ngModel]="ctx.endLocal()" (ngModelChange)="ctx.endLocal.set($event)" name="endAt" required />
+  </div>
+  <div>
+    <label for="kind">Tipo</label>
+    <select id="kind" [ngModel]="ctx.kind()" (ngModelChange)="ctx.kind.set($event)" name="kind">
+      <option value="">Todos</option>
+      @for (kind of kinds; track kind) {
+        @if (kind) {
+          <option [value]="kind">{{ kindLabels[kind] }}</option>
+        }
+      }
+    </select>
+  </div>
+  <div>
+    <label for="minCapacity">Cupos mín.</label>
+    <input id="minCapacity" type="number" min="1" [ngModel]="ctx.minCapacity()" (ngModelChange)="ctx.minCapacity.set($event === '' ? '' : +$event)" name="minCapacity" />
+  </div>
+  <button class="btn" type="submit" [disabled]="busy()">Buscar hueco</button>
+</form>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (searched() && spaces().length === 0) {
+  <p class="lead">No hay hueco libre en ese periodo. Cambia la hora o el tipo.</p>
+}
+
+@for (space of spaces(); track space.id) {
+  <article [class]="'venue ' + kindTone(space.kind)">
+    <div class="venue-mark" aria-hidden="true"></div>
+    <div>
+      <strong>{{ space.name }}</strong>
+      <div class="venue-meta">{{ kindLabels[space.kind] }} · {{ space.capacity }} cupos</div>
+      @if (space.amountCents) {
+        <div class="venue-rate">{{ formatCop(space.amountCents) }} · {{ space.amountCents }} amountCents</div>
+      }
+    </div>
+    <div class="actions">
+      <span class="stamp is-ok">Libre</span>
+      <a class="btn sec" [routerLink]="['/spaces', space.id]" [queryParams]="{ startAt: ctx.startAt(), endAt: ctx.endAt() }">Dossier</a>
+      <button class="btn" type="button" (click)="reserve(space)">Reservar</button>
+    </div>
+  </article>
+}
