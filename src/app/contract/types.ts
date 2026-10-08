@@ -54,11 +54,11 @@ export interface User {
   role: Role;
 }
 
+/** E-01: token only. Profile is E-03 `GET /api/v1/users/me`. */
 export interface LoginResponse {
   accessToken: string;
   tokenType: 'Bearer';
   expiresIn: number;
-  user: User;
 }
 
 export interface Space {

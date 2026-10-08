@@ -35,6 +35,11 @@ export class AuthStore {
     return this.tokenValue;
   }
 
+  /** Hold the bearer so `me()` can run before the session is stored (E-01 then E-03). */
+  setToken(token: string): void {
+    this.tokenValue = token;
+  }
+
   setSession(token: string, user: User): void {
     this.tokenValue = token;
     this.user.set(user);
