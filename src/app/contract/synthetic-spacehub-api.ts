@@ -88,29 +88,31 @@ export class SyntheticSpacehubApi extends SpacehubApi {
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
+    if (password === '' || email.trim() === '') {
+      throw credentialsError();
+    }
     const found = USERS.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
     if (!found || found.password !== password) {
-      throw apiError(401, {
-        error: 'INVALID_CREDENTIALS',
-        message: 'Email o contraseña inválidos',
-      });
+      throw credentialsError();
     }
-    const user: User = {
-      id: found.id,
-      email: found.email,
-      displayName: found.displayName,
-      role: found.role,
-    };
     return {
-      accessToken: `synthetic.${user.id}`,
+      accessToken: `synthetic.${found.id}`,
       tokenType: 'Bearer',
       expiresIn: 3600,
-      user,
     };
   }
 
   async me(): Promise<User> {
-    return clone(this.requireUser());
+    const token = this.auth.token();
+    if (!token?.startsWith('synthetic.')) {
+      throw apiError(401, { error: 'UNAUTHORIZED', message: 'Token de autenticación requerido' });
+    }
+    const id = token.slice('synthetic.'.length);
+    const found = USERS.find((u) => u.id === id);
+    if (!found) {
+      throw apiError(401, { error: 'UNAUTHORIZED', message: 'Token de autenticación requerido' });
+    }
+    return toPublicUser(found);
   }
 
   async listAvailableSpaces(query: ListSpacesQuery): Promise<ListEnvelope<Space>> {
@@ -127,7 +129,7 @@ export class SyntheticSpacehubApi extends SpacehubApi {
         return false;
       }
       return this.availabilityOf(space.id, query.startAt, query.endAt).available;
-    });
+    }).sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
     return paginate(filtered.map(clone), query.page, query.limit);
   }
 
@@ -140,7 +142,8 @@ export class SyntheticSpacehubApi extends SpacehubApi {
 
   async listSpaces(page = 1, limit = 20): Promise<ListEnvelope<Space>> {
     this.requireUser();
-    return paginate(SPACES.map(clone), page, limit);
+    const rows = [...SPACES].sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+    return paginate(rows.map(clone), page, limit);
   }
 
   async getSpace(spaceId: string): Promise<Space> {
@@ -155,9 +158,8 @@ export class SyntheticSpacehubApi extends SpacehubApi {
     if (replay) {
       return clone(replay);
     }
-    const space = this.getSpaceOrThrow(body.spaceId);
     const availability = this.availabilityOf(body.spaceId, body.startAt, body.endAt);
-    if (!availability.available || space.id === AUDITORIO_ID) {
+    if (!availability.available) {
       throw apiError(422, {
         error: 'BUSINESS_RULE_VIOLATION',
         message:
@@ -192,7 +194,7 @@ export class SyntheticSpacehubApi extends SpacehubApi {
       throw apiError(404, { error: 'NOT_FOUND', message: 'La reserva no existe' });
     }
     if (user.role !== 'ADMIN' && found.userId !== user.id) {
-      throw apiError(403, { error: 'FORBIDDEN', message: 'No tienes permisos para realizar esta acción' });
+      throw apiError(404, { error: 'NOT_FOUND', message: 'La reserva no existe' });
     }
     return clone(found);
   }
@@ -206,7 +208,7 @@ export class SyntheticSpacehubApi extends SpacehubApi {
     if (query.spaceId) {
       rows = rows.filter((r) => r.spaceId === query.spaceId);
     }
-    rows = [...rows].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+    rows = [...rows].sort((a, b) => b.startAt.localeCompare(a.startAt) || a.id.localeCompare(b.id));
     return paginate(rows.map(clone), query.page, query.limit);
   }
 
@@ -226,13 +228,13 @@ export class SyntheticSpacehubApi extends SpacehubApi {
   }
 
   async createPayment(body: CreatePaymentRequest, idempotencyKey: string): Promise<Payment> {
-    this.requireUser();
+    const user = this.requireUser();
     const replay = this.replayPayment(idempotencyKey, JSON.stringify(body));
     if (replay) {
       return clone(replay);
     }
     const reservation = this.reservations.find((r) => r.id === body.reservationId);
-    if (!reservation) {
+    if (!reservation || (user.role !== 'ADMIN' && reservation.userId !== user.id)) {
       throw apiError(404, { error: 'NOT_FOUND', message: 'La reserva no existe' });
     }
     if (reservation.state !== 'PAYMENT_PENDING') {
@@ -265,9 +267,13 @@ export class SyntheticSpacehubApi extends SpacehubApi {
   }
 
   async getPayment(paymentId: string): Promise<Payment> {
-    this.requireUser();
+    const user = this.requireUser();
     const found = this.payments.find((p) => p.id === paymentId);
     if (!found) {
+      throw apiError(404, { error: 'NOT_FOUND', message: 'El pago no existe' });
+    }
+    const reservation = this.reservations.find((r) => r.id === found.reservationId);
+    if (user.role !== 'ADMIN' && (!reservation || reservation.userId !== user.id)) {
       throw apiError(404, { error: 'NOT_FOUND', message: 'El pago no existe' });
     }
     return clone(found);
@@ -311,9 +317,6 @@ export class SyntheticSpacehubApi extends SpacehubApi {
 
   private availabilityOf(spaceId: string, startAt: string, endAt: string): Availability {
     const space = this.getSpaceOrThrow(spaceId);
-    if (!space.available || space.id === AUDITORIO_ID) {
-      return { spaceId, available: false, reason: 'BLOCKED' };
-    }
     const confirmedOverlap = this.reservations.some(
       (r) =>
         r.spaceId === spaceId &&
@@ -322,6 +325,9 @@ export class SyntheticSpacehubApi extends SpacehubApi {
     );
     if (confirmedOverlap) {
       return { spaceId, available: false, reason: 'CONFIRMED_OVERLAP' };
+    }
+    if (!space.available) {
+      return { spaceId, available: false, reason: 'INACTIVE' };
     }
     return { spaceId, available: true, reason: 'OK' };
   }
@@ -373,13 +379,38 @@ function clone<T>(value: T): T {
 }
 
 function paginate<T>(items: T[], page = 1, limit = 20): ListEnvelope<T> {
-  const safePage = Math.max(1, page);
-  const safeLimit = Math.min(100, Math.max(1, limit));
+  const resolvedPage = page ?? 1;
+  const resolvedLimit = limit ?? 20;
+  if (!Number.isInteger(resolvedPage) || resolvedPage < 1) {
+    throw apiError(400, {
+      error: 'VALIDATION_ERROR',
+      message: 'page debe ser un entero mayor o igual a 1',
+      details: [{ field: 'page', message: 'Debe ser un entero ≥ 1' }],
+    });
+  }
+  if (!Number.isInteger(resolvedLimit) || resolvedLimit < 1 || resolvedLimit > 100) {
+    throw apiError(400, {
+      error: 'VALIDATION_ERROR',
+      message: 'limit debe estar entre 1 y 100',
+      details: [{ field: 'limit', message: 'Debe estar entre 1 y 100' }],
+    });
+  }
   const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / safeLimit) || 1);
-  const start = (safePage - 1) * safeLimit;
-  const meta: PaginatedMeta = { page: safePage, limit: safeLimit, total, totalPages };
-  return { data: items.slice(start, start + safeLimit), meta };
+  const totalPages = total === 0 ? 0 : Math.ceil(total / resolvedLimit);
+  const start = (resolvedPage - 1) * resolvedLimit;
+  const meta: PaginatedMeta = { page: resolvedPage, limit: resolvedLimit, total, totalPages };
+  return { data: items.slice(start, start + resolvedLimit), meta };
+}
+
+function credentialsError(): ApiError {
+  return apiError(422, {
+    error: 'BUSINESS_RULE_VIOLATION',
+    message: 'Usuario o contraseña incorrectos.',
+  });
+}
+
+function toPublicUser(user: User & { password: string }): User {
+  return { id: user.id, email: user.email, displayName: user.displayName, role: user.role };
 }
 
 function apiError(status: number, body: ErrorResponse): ApiError {

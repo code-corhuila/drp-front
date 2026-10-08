@@ -25,10 +25,12 @@ export class LoginPage {
     this.busy.set(true);
     try {
       const response = await this.api.login(this.email, this.password);
-      this.auth.setSession(response.accessToken, response.user);
+      this.auth.setToken(response.accessToken);
+      const user = await this.api.me();
+      this.auth.setSession(response.accessToken, user);
       await this.router.navigateByUrl('/spaces');
     } catch (err) {
-      this.error.set(errorMessage(err, 'Email o contraseña inválidos'));
+      this.error.set(errorMessage(err, 'Usuario o contraseña incorrectos.'));
     } finally {
       this.busy.set(false);
     }
