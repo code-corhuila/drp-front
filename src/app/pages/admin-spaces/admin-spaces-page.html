@@ -1,0 +1,32 @@
+<p class="kicker">Inventario · HU-RES-008</p>
+<h1>Libro de espacios</h1>
+<p class="lead">Catálogo completo. USER no entra a este libro.</p>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+<table class="ledger">
+  <thead>
+    <tr>
+      <th>Sala</th>
+      <th>Tipo</th>
+      <th>Cupos</th>
+      <th>Tarifa</th>
+      <th>Sello</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (space of rows(); track space.id) {
+      <tr>
+        <td>{{ space.name }}</td>
+        <td>{{ kindLabels[space.kind] }}</td>
+        <td>{{ space.capacity }}</td>
+        <td class="mono">{{ space.amountCents ? formatCop(space.amountCents) : '—' }}</td>
+        <td>
+          <span [class]="space.available ? 'stamp is-ok' : 'stamp is-bad'">
+            {{ space.available ? 'OK' : 'Bloqueado' }}
+          </span>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

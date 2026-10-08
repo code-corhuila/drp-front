@@ -1,0 +1,19 @@
+<p class="kicker">Tablón · HU-RES-007</p>
+<h1>Notas del mostrador</h1>
+<p class="lead">Bandeja data / meta. El tablón no lee tablas ajenas.</p>
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+@if (rows().length === 0 && !error()) {
+  <p class="lead">El tablón está vacío. Confirma un pago para ver ReservationConfirmed.</p>
+}
+@for (row of rows(); track row.id) {
+  <article class="bulletin">
+    <span class="pin" aria-hidden="true"></span>
+    <div>
+      <strong>{{ eventLabel(row.eventType) }}</strong>
+      <div class="muted">{{ row.channel }} · {{ row.createdAt }}</div>
+    </div>
+    <span [class]="stampClass(row.state)">{{ row.state }}</span>
+  </article>
+}
