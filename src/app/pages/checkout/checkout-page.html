@@ -1,0 +1,19 @@
+<p class="kicker">Caja · HU-RES-005</p>
+<h1>Un talón, un cobro</h1>
+<p class="lead">El mismo Idempotency-Key no cobra dos veces. Un 5xx no fabrica un CONFIRMED.</p>
+@if (reservation(); as current) {
+  <section class="caja">
+    <p class="ticket-id">Ficha {{ current.id }}</p>
+    <p>
+      {{ space()?.name }}<br />
+      {{ formatPeriod(current.startAt, current.endAt) }}
+    </p>
+    <p class="caja-total">{{ formatCop(amountCents) }}</p>
+    <p class="caja-cents">{{ amountCents }} amountCents · COP</p>
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+    <button class="btn" type="button" [disabled]="busy()" (click)="pay()">Pagar en caja</button>
+  </section>
+}
+<p><a class="back" routerLink="/reservations">Ver mis fichas</a></p>
