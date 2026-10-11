@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, effect, untracked } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { AuthStore } from '../core/auth-store';
+import { InjectFailureStore, injectedWriteDeniedError } from '../core/inject-failure';
 import { ApiError, isFailoverTrigger } from './api-error';
 import { HttpSpacehubApi } from './http-spacehub-api';
 import { SpacehubApi } from './spacehub-api';
@@ -24,14 +25,30 @@ import {
 @Injectable({ providedIn: 'root' })
 export class FailoverSpacehubApi extends SpacehubApi {
   private stickySynthetic = environment.mode === 'synthetic';
+  private heldByInject = false;
 
   constructor(
     private readonly httpApi: HttpSpacehubApi,
     private readonly syntheticApi: SyntheticSpacehubApi,
     private readonly auth: AuthStore,
+    private readonly injectFailure: InjectFailureStore,
   ) {
     super();
     this.auth.usingSynthetic.set(this.stickySynthetic);
+    effect(() => {
+      const injected = this.injectFailure.on();
+      untracked(() => {
+        if (injected) {
+          this.heldByInject = true;
+          return;
+        }
+        if (this.heldByInject && environment.mode !== 'synthetic') {
+          this.heldByInject = false;
+          this.stickySynthetic = false;
+          this.auth.usingSynthetic.set(false);
+        }
+      });
+    });
   }
 
   login(email: string, password: string): Promise<LoginResponse> {
@@ -97,6 +114,9 @@ export class FailoverSpacehubApi extends SpacehubApi {
     opts: { allowSyntheticWrite?: boolean } = {},
   ): Promise<T> {
     const allowSyntheticWrite = opts.allowSyntheticWrite !== false;
+    if (this.injectFailure.on() && !allowSyntheticWrite) {
+      throw injectedWriteDeniedError();
+    }
     if (environment.mode === 'synthetic' || this.stickySynthetic) {
       this.auth.usingSynthetic.set(true);
       return op(this.syntheticApi);
@@ -115,14 +135,7 @@ export class FailoverSpacehubApi extends SpacehubApi {
       }
       if (isFailoverTrigger(error)) {
         if (!allowSyntheticWrite) {
-          throw new ApiError(
-            {
-              error: 'SERVICE_UNAVAILABLE',
-              message:
-                'El gateway no confirmó esta escritura. No se simula un pago ni una reserva.',
-            },
-            503,
-          );
+          throw injectedWriteDeniedError();
         }
         this.stickySynthetic = true;
         this.auth.usingSynthetic.set(true);
