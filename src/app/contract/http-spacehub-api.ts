@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../core/auth-store';
+import { InjectFailureStore, injectedGatewayError } from '../core/inject-failure';
 import { environment } from '../../environments/environment';
 import { newId } from '../util/datetime';
 import { ApiError } from './api-error';
@@ -28,6 +29,7 @@ export class HttpSpacehubApi extends SpacehubApi {
   constructor(
     private readonly http: HttpClient,
     private readonly auth: AuthStore,
+    private readonly injectFailure: InjectFailureStore,
   ) {
     super();
   }
@@ -133,6 +135,9 @@ export class HttpSpacehubApi extends SpacehubApi {
       idempotencyKey?: string;
     } = {},
   ): Promise<T> {
+    if (this.injectFailure.on()) {
+      throw injectedGatewayError();
+    }
     let headers = new HttpHeaders({
       'X-Correlation-Id': newId(),
     });
