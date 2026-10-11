@@ -15,6 +15,7 @@
     }
   </nav>
   <div class="session">
+    <app-inject-failure-toggle />
     <span class="chip">{{ auth.user()?.role }}</span>
     <span class="who">{{ auth.user()?.displayName || auth.user()?.email }}</span>
     <a class="ghost" routerLink="/login" (click)="signOut()">Cerrar ficha</a>
@@ -24,6 +25,11 @@
 @if (auth.usingSynthetic()) {
   <div class="banner" role="status">
     Mostrador en failover — contrato 07-api; el gateway no está en el mostrador
+  </div>
+}
+@if (injectFailure.on()) {
+  <div class="banner inject" role="status">
+    Fallo inyectado — gateway 5xx; lecturas en contrato, escrituras no se confirman
   </div>
 }
 
