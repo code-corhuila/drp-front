@@ -3,16 +3,19 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpacehubApi } from '../../contract/spacehub-api';
 import { AuthStore } from '../../core/auth-store';
+import { InjectFailureStore } from '../../core/inject-failure';
+import { InjectFailureToggle } from '../../layout/inject-failure-toggle';
 import { errorMessage } from '../../util/error-message';
 
 @Component({
   selector: 'app-login-page',
-  imports: [FormsModule],
+  imports: [FormsModule, InjectFailureToggle],
   templateUrl: './login-page.html',
 })
 export class LoginPage {
   private readonly api = inject(SpacehubApi);
   private readonly auth = inject(AuthStore);
+  readonly injectFailure = inject(InjectFailureStore);
   private readonly router = inject(Router);
 
   email = '';

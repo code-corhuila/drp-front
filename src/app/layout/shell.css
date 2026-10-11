@@ -109,6 +109,11 @@ nav a:hover {
   border-bottom: 1px dashed var(--color-accent);
 }
 
+.banner.inject {
+  background: #f3d6d6;
+  border-bottom-color: var(--color-error);
+}
+
 .layout {
   display: grid;
   grid-template-columns: 1fr 250px;

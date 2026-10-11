@@ -546,6 +546,10 @@ code,
   margin: 0;
 }
 
+.inject-row {
+  margin: 0 0 0.85rem;
+}
+
 .login-accounts {
   margin-top: 1.4rem;
   padding-top: 1rem;

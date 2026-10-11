@@ -2,17 +2,20 @@ import { Component, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthStore } from '../core/auth-store';
+import { InjectFailureStore } from '../core/inject-failure';
+import { InjectFailureToggle } from './inject-failure-toggle';
 
 export type DeskStep = 'search' | 'space' | 'create' | 'pay' | 'status' | 'inbox' | 'admin';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, InjectFailureToggle],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })
 export class Shell {
   readonly auth = inject(AuthStore);
+  readonly injectFailure = inject(InjectFailureStore);
   private readonly router = inject(Router);
   readonly url = signal(this.router.url);
 
