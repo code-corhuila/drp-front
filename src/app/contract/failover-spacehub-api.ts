@@ -52,27 +52,35 @@ export class FailoverSpacehubApi extends SpacehubApi {
   }
 
   login(email: string, password: string): Promise<LoginResponse> {
-    return this.withFailover((api) => api.login(email, password));
+    return this.withFailover((api) => api.login(email, password), {
+      allowSyntheticWrite: true,
+    });
   }
 
   me(): Promise<User> {
-    return this.withFailover((api) => api.me());
+    return this.withFailover((api) => api.me(), { allowSyntheticWrite: true });
   }
 
   listAvailableSpaces(query: ListSpacesQuery): Promise<ListEnvelope<Space>> {
-    return this.withFailover((api) => api.listAvailableSpaces(query));
+    return this.withFailover((api) => api.listAvailableSpaces(query), {
+      allowSyntheticWrite: true,
+    });
   }
 
   getSpaceAvailability(spaceId: string, startAt: string, endAt: string): Promise<Availability> {
-    return this.withFailover((api) => api.getSpaceAvailability(spaceId, startAt, endAt));
+    return this.withFailover((api) => api.getSpaceAvailability(spaceId, startAt, endAt), {
+      allowSyntheticWrite: true,
+    });
   }
 
   listSpaces(page?: number, limit?: number): Promise<ListEnvelope<Space>> {
-    return this.withFailover((api) => api.listSpaces(page, limit));
+    return this.withFailover((api) => api.listSpaces(page, limit), {
+      allowSyntheticWrite: true,
+    });
   }
 
   getSpace(spaceId: string): Promise<Space> {
-    return this.withFailover((api) => api.getSpace(spaceId));
+    return this.withFailover((api) => api.getSpace(spaceId), { allowSyntheticWrite: true });
   }
 
   createReservation(body: CreateReservationRequest, idempotencyKey: string): Promise<Reservation> {
@@ -82,11 +90,15 @@ export class FailoverSpacehubApi extends SpacehubApi {
   }
 
   getReservation(reservationId: string): Promise<Reservation> {
-    return this.withFailover((api) => api.getReservation(reservationId));
+    return this.withFailover((api) => api.getReservation(reservationId), {
+      allowSyntheticWrite: true,
+    });
   }
 
   listReservations(query?: ListReservationsQuery): Promise<ListEnvelope<Reservation>> {
-    return this.withFailover((api) => api.listReservations(query));
+    return this.withFailover((api) => api.listReservations(query), {
+      allowSyntheticWrite: true,
+    });
   }
 
   cancelReservation(reservationId: string, reason?: string): Promise<Reservation> {
@@ -102,22 +114,33 @@ export class FailoverSpacehubApi extends SpacehubApi {
   }
 
   getPayment(paymentId: string): Promise<Payment> {
-    return this.withFailover((api) => api.getPayment(paymentId));
+    return this.withFailover((api) => api.getPayment(paymentId), {
+      allowSyntheticWrite: true,
+    });
   }
 
   listNotifications(query?: ListNotificationsQuery): Promise<ListEnvelope<Notification>> {
-    return this.withFailover((api) => api.listNotifications(query));
+    return this.withFailover((api) => api.listNotifications(query), {
+      allowSyntheticWrite: true,
+    });
   }
 
   private async withFailover<T>(
     op: (api: SpacehubApi) => Promise<T>,
     opts: { allowSyntheticWrite?: boolean } = {},
   ): Promise<T> {
-    const allowSyntheticWrite = opts.allowSyntheticWrite !== false;
+    const allowSyntheticWrite = opts.allowSyntheticWrite === true;
     if (this.injectFailure.on() && !allowSyntheticWrite) {
       throw injectedWriteDeniedError();
     }
-    if (environment.mode === 'synthetic' || this.stickySynthetic) {
+    if (environment.mode === 'synthetic') {
+      this.auth.usingSynthetic.set(true);
+      return op(this.syntheticApi);
+    }
+    if (this.stickySynthetic) {
+      if (!allowSyntheticWrite) {
+        throw injectedWriteDeniedError();
+      }
       this.auth.usingSynthetic.set(true);
       return op(this.syntheticApi);
     }
