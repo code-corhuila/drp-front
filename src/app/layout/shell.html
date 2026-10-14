@@ -1,52 +1,64 @@
-<header>
-  <div class="brand">
-    <span class="mark" aria-hidden="true"></span>
-    <div>
-      <strong>SpaceHub</strong>
-      <span>Mostrador de espacios</span>
+<div class="app" [class.rail-open]="open()" [class.rail-overlay]="overlay()">
+  <button class="scrim" type="button" (click)="close()" [hidden]="!overlay() || !open()" aria-label="Cerrar menú"></button>
+
+  <aside class="rail">
+    <div class="rail-head">
+      <a class="brand" routerLink="/spaces">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>SpaceHub</strong>
+          <em>Espacios</em>
+        </span>
+      </a>
+      <button class="rail-toggle" type="button" (click)="toggle()" [attr.aria-expanded]="open()" [attr.aria-label]="open() ? 'Ocultar menú' : 'Mostrar menú'">
+        <span></span>
+      </button>
     </div>
-  </div>
-  <nav>
-    <a routerLink="/spaces" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Huecos</a>
-    <a routerLink="/reservations" routerLinkActive="on">Fichas</a>
-    <a routerLink="/notifications" routerLinkActive="on">Tablón</a>
-    @if (auth.user()?.role === 'ADMIN') {
-      <a routerLink="/admin/spaces" routerLinkActive="on">Inventario</a>
-    }
-  </nav>
-  <div class="session">
-    <app-inject-failure-toggle />
-    <span class="chip">{{ auth.user()?.role }}</span>
-    <span class="who">{{ auth.user()?.displayName || auth.user()?.email }}</span>
-    <a class="ghost" routerLink="/login" (click)="signOut()">Cerrar ficha</a>
-  </div>
-</header>
 
-@if (auth.usingSynthetic()) {
-  <div class="banner" role="status">
-    Mostrador en failover — contrato 07-api; el gateway no está en el mostrador
-  </div>
-}
-@if (injectFailure.on()) {
-  <div class="banner inject" role="status">
-    Fallo inyectado — gateway 5xx; lecturas en contrato, escrituras no se confirman
-  </div>
-}
+    <nav>
+      <a routerLink="/spaces" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" title="Salas">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" fill="currentColor"/></svg>
+        <span>Salas</span>
+      </a>
+      <a routerLink="/reservations" routerLinkActive="on" title="Reservas">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v2M17 3v2M4 8h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm2 7h4v4H8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Reservas</span>
+      </a>
+      <a routerLink="/notifications" routerLinkActive="on" title="Avisos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a6 6 0 0 1 6 6v3.2l1.4 2.1A1 1 0 0 1 18.6 17H5.4a1 1 0 0 1-.8-1.7L6 13.2V10a6 6 0 0 1 6-6zm0 16a2.5 2.5 0 0 0 2.3-1.5H9.7A2.5 2.5 0 0 0 12 20z" fill="currentColor"/></svg>
+        <span>Avisos</span>
+      </a>
+      @if (auth.user()?.role === 'ADMIN') {
+        <a routerLink="/admin/spaces" routerLinkActive="on" title="Inventario">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5 12 3l8 3.5V9l-8 3.5L4 9zm0 5.2 8 3.5 8-3.5V18L12 21l-8-3z" fill="currentColor"/></svg>
+          <span>Inventario</span>
+        </a>
+      }
+    </nav>
 
-<main class="layout">
-  <section class="phone">
-    <router-outlet />
-  </section>
-  <aside class="desk-slip">
-    <p class="kicker">Trámite en curso</p>
-    <h2>{{ deskTitle() }}</h2>
-    <ol class="stamps">
-      <li [class.on]="step() === 'search' || step() === 'space'">1 Buscar hueco</li>
-      <li [class.on]="step() === 'create'">2 Fichar reserva</li>
-      <li [class.on]="step() === 'pay'">3 Pagar en caja</li>
-      <li [class.on]="step() === 'status' || step() === 'inbox'">4 Stub confirmado</li>
-    </ol>
-    <p class="svc-note">{{ deskCopy() }}</p>
-    <p class="owner">Lo atiende <code>{{ owner() }}</code></p>
+    <div class="rail-foot">
+      <div class="who-block">
+        <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+        <span class="who">{{ auth.user()?.displayName || auth.user()?.email }}</span>
+      </div>
+      <a class="ghost" routerLink="/login" (click)="signOut()">Salir</a>
+    </div>
   </aside>
-</main>
+
+  <div class="stage">
+    <header class="top">
+      <button class="menu-btn" type="button" (click)="toggle()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <p class="top-title">{{ title() }}</p>
+      <div class="top-actions">
+        <app-inject-failure-toggle />
+      </div>
+    </header>
+    <main class="layout">
+      <section class="blotter">
+        <router-outlet />
+      </section>
+    </main>
+  </div>
+</div>
