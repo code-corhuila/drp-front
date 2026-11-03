@@ -5,8 +5,11 @@ import { ApiError } from './api-error';
 import { SpacehubApi } from './spacehub-api';
 import {
   Availability,
+  BlockedPeriod,
+  BlockPeriodRequest,
   CreatePaymentRequest,
   CreateReservationRequest,
+  CreateSpaceRequest,
   ErrorResponse,
   ListEnvelope,
   ListNotificationsQuery,
@@ -80,6 +83,7 @@ export class SyntheticSpacehubApi extends SpacehubApi {
   private readonly reservations: Reservation[] = [];
   private readonly payments: Payment[] = [];
   private readonly notifications: Notification[] = [];
+  private readonly blocks: BlockedPeriod[] = [];
   private readonly reservationKeys = new Map<string, { body: string; reservation: Reservation }>();
   private readonly paymentKeys = new Map<string, { body: string; payment: Payment }>();
 
@@ -149,6 +153,55 @@ export class SyntheticSpacehubApi extends SpacehubApi {
   async getSpace(spaceId: string): Promise<Space> {
     this.requireUser();
     return clone(this.getSpaceOrThrow(spaceId));
+  }
+
+  async createSpace(body: CreateSpaceRequest): Promise<Space> {
+    this.requireAdmin();
+    const name = body.name.trim();
+    if (!name || name.length > 200 || body.capacity < 1) {
+      throw apiError(400, { error: 'VALIDATION_ERROR', message: 'Datos de entrada inválidos' });
+    }
+    if (SPACES.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
+      throw apiError(422, {
+        error: 'BUSINESS_RULE_VIOLATION',
+        message: 'Ya existe un espacio con ese nombre',
+        details: [{ field: 'name', message: 'Debe ser único sin distinguir mayúsculas' }],
+      });
+    }
+    const space: Space = {
+      id: newId(),
+      name,
+      kind: body.kind,
+      capacity: body.capacity,
+      available: true,
+      description: body.description ?? '',
+    };
+    SPACES.push(space);
+    return clone(space);
+  }
+
+  async listBlocks(spaceId: string, page = 1, limit = 20): Promise<ListEnvelope<BlockedPeriod>> {
+    this.requireAdmin();
+    this.getSpaceOrThrow(spaceId);
+    const rows = this.blocks
+      .filter((b) => b.spaceId === spaceId)
+      .sort((a, b) => a.startAt.localeCompare(b.startAt) || a.id.localeCompare(b.id));
+    return paginate(rows.map(clone), page, limit);
+  }
+
+  async createBlock(spaceId: string, body: BlockPeriodRequest): Promise<BlockedPeriod> {
+    this.requireAdmin();
+    this.getSpaceOrThrow(spaceId);
+    this.requirePeriod(body.startAt, body.endAt);
+    const block: BlockedPeriod = {
+      id: newId(),
+      spaceId,
+      startAt: body.startAt,
+      endAt: body.endAt,
+      reason: body.reason,
+    };
+    this.blocks.push(block);
+    return clone(block);
   }
 
   async createReservation(body: CreateReservationRequest, idempotencyKey: string): Promise<Reservation> {
@@ -293,6 +346,14 @@ export class SyntheticSpacehubApi extends SpacehubApi {
     const user = this.auth.user();
     if (!user) {
       throw apiError(401, { error: 'UNAUTHORIZED', message: 'Token de autenticación requerido' });
+    }
+    return user;
+  }
+
+  private requireAdmin(): User {
+    const user = this.requireUser();
+    if (user.role !== 'ADMIN') {
+      throw apiError(403, { error: 'FORBIDDEN', message: 'No tienes permiso para esta operación' });
     }
     return user;
   }

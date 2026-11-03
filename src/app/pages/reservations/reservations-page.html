@@ -1,11 +1,11 @@
-<p class="kicker">Fichas · HU-RES-004</p>
-<h1>Stubs abiertos</h1>
-<p class="lead">Listado data / meta. Cada fila es un talón, no una fila de búsqueda.</p>
+<p class="kicker">Reservas</p>
+<h1>Tus reservas</h1>
+<p class="lead">Toca una para ver el horario, el estado o ir a pagar.</p>
 @if (error()) {
   <p class="error">{{ error() }}</p>
 }
 @if (rows().length === 0 && !error()) {
-  <p class="lead">Aún no hay fichas en el mostrador.</p>
+  <p class="lead">Aún no tienes reservas.</p>
 }
 @for (row of rows(); track row.id) {
   <a class="ticket" [routerLink]="['/reservations', row.id]">

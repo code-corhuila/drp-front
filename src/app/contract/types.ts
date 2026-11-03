@@ -67,9 +67,31 @@ export interface Space {
   kind: SpaceKind;
   capacity: number;
   available: boolean;
+  description?: string;
   /** Catalog price in integer minor units (norma 5.3.9). Not always on OpenAPI SpaceSummary. */
   amountCents?: number;
   currency?: string;
+}
+
+export interface CreateSpaceRequest {
+  name: string;
+  kind: SpaceKind;
+  capacity: number;
+  description?: string;
+}
+
+export interface BlockedPeriod {
+  id: string;
+  spaceId: string;
+  startAt: string;
+  endAt: string;
+  reason?: string;
+}
+
+export interface BlockPeriodRequest {
+  startAt: string;
+  endAt: string;
+  reason?: string;
 }
 
 export interface Availability {

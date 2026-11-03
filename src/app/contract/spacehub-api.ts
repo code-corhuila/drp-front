@@ -1,7 +1,10 @@
 import {
   Availability,
+  BlockedPeriod,
+  BlockPeriodRequest,
   CreatePaymentRequest,
   CreateReservationRequest,
+  CreateSpaceRequest,
   ListEnvelope,
   ListNotificationsQuery,
   ListReservationsQuery,
@@ -25,6 +28,9 @@ export abstract class SpacehubApi {
   ): Promise<Availability>;
   abstract listSpaces(page?: number, limit?: number): Promise<ListEnvelope<Space>>;
   abstract getSpace(spaceId: string): Promise<Space>;
+  abstract createSpace(body: CreateSpaceRequest): Promise<Space>;
+  abstract listBlocks(spaceId: string, page?: number, limit?: number): Promise<ListEnvelope<BlockedPeriod>>;
+  abstract createBlock(spaceId: string, body: BlockPeriodRequest): Promise<BlockedPeriod>;
   abstract createReservation(
     body: CreateReservationRequest,
     idempotencyKey: string,
