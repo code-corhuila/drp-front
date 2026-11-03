@@ -167,7 +167,7 @@ export class HttpSpacehubApi extends SpacehubApi {
     if (!(error instanceof HttpErrorResponse)) {
       return error;
     }
-    if (error.status === 0 || error.status >= 500) {
+    if (error.status === 0) {
       return error;
     }
     const body = normalizeError(error.error, error.status);
