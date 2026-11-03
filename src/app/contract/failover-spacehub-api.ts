@@ -8,8 +8,11 @@ import { SpacehubApi } from './spacehub-api';
 import { SyntheticSpacehubApi } from './synthetic-spacehub-api';
 import {
   Availability,
+  BlockedPeriod,
+  BlockPeriodRequest,
   CreatePaymentRequest,
   CreateReservationRequest,
+  CreateSpaceRequest,
   ListEnvelope,
   ListNotificationsQuery,
   ListReservationsQuery,
@@ -81,6 +84,20 @@ export class FailoverSpacehubApi extends SpacehubApi {
 
   getSpace(spaceId: string): Promise<Space> {
     return this.withFailover((api) => api.getSpace(spaceId), { allowSyntheticWrite: true });
+  }
+
+  createSpace(body: CreateSpaceRequest): Promise<Space> {
+    return this.withFailover((api) => api.createSpace(body), { allowSyntheticWrite: false });
+  }
+
+  listBlocks(spaceId: string, page?: number, limit?: number): Promise<ListEnvelope<BlockedPeriod>> {
+    return this.withFailover((api) => api.listBlocks(spaceId, page, limit), {
+      allowSyntheticWrite: true,
+    });
+  }
+
+  createBlock(spaceId: string, body: BlockPeriodRequest): Promise<BlockedPeriod> {
+    return this.withFailover((api) => api.createBlock(spaceId, body), { allowSyntheticWrite: false });
   }
 
   createReservation(body: CreateReservationRequest, idempotencyKey: string): Promise<Reservation> {
