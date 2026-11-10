@@ -1,20 +1,19 @@
-<a class="back" routerLink="/reservations">← Mis fichas</a>
-<p class="kicker">Stub · HU-RES-004 / 006</p>
-<h1>La ficha del hueco</h1>
-<p class="lead">Estados <code>PAYMENT_PENDING | CONFIRMED | CANCELLED</code>.</p>
+<a class="back" routerLink="/reservations">← Mis reservas</a>
+<p class="kicker">Reserva</p>
+<h1>Detalle</h1>
+<p class="lead">Puede estar en pago pendiente, confirmada o cancelada.</p>
 @if (error()) {
   <p class="error">{{ error() }}</p>
 }
 @if (reservation(); as reservation) {
   @if (reservation.state === 'CONFIRMED') {
-    <p class="warn">La reserva quedó <strong>CONFIRMED</strong>. Si un aviso falla, este stub no se revierte (BR-006).</p>
+    <p class="warn">Esta reserva ya está <strong>confirmada</strong>.</p>
   }
   <article class="ticket">
     <span class="ticket-perf" aria-hidden="true"></span>
     <div>
       <strong>{{ space()?.name ?? reservation.spaceId }}</strong><br />
-      {{ formatPeriod(reservation.startAt, reservation.endAt) }}<br />
-      <span class="ticket-id">id {{ reservation.id }}</span>
+      {{ formatPeriod(reservation.startAt, reservation.endAt) }}
     </div>
     <span [class]="stampClass(reservation.state)">{{ stateLabels[reservation.state] }}</span>
   </article>
@@ -23,11 +22,11 @@
   }
   <div class="actions">
     @if (reservation.state === 'PAYMENT_PENDING') {
-      <button class="btn" type="button" (click)="goPay()">Ir a caja</button>
+      <button class="btn" type="button" (click)="goPay()">Pagar</button>
     }
     @if (canCancel()) {
-      <button class="btn sec" type="button" [disabled]="busy()" (click)="cancel()">Anular ficha</button>
+      <button class="btn sec" type="button" [disabled]="busy()" (click)="cancel()">Cancelar reserva</button>
     }
   </div>
 }
-<p><a class="back" routerLink="/notifications">Ver el tablón</a></p>
+<p><a class="back" routerLink="/notifications">Ver avisos</a></p>

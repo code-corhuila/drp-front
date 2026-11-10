@@ -1,11 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthStore } from '../core/auth-store';
-import { InjectFailureStore } from '../core/inject-failure';
 import { InjectFailureToggle } from './inject-failure-toggle';
 
-export type DeskStep = 'search' | 'space' | 'create' | 'pay' | 'status' | 'inbox' | 'admin';
+const RAIL_KEY = 'spacehub.railOpen';
 
 @Component({
   selector: 'app-shell',
@@ -15,96 +14,74 @@ export type DeskStep = 'search' | 'space' | 'create' | 'pay' | 'status' | 'inbox
 })
 export class Shell {
   readonly auth = inject(AuthStore);
-  readonly injectFailure = inject(InjectFailureStore);
   private readonly router = inject(Router);
-  readonly url = signal(this.router.url);
+  readonly open = signal(this.readOpen());
+  readonly overlay = signal(false);
+  readonly path = signal(this.router.url);
 
   constructor() {
+    this.syncViewport();
     this.router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd)).subscribe((event) => {
-      this.url.set(event.urlAfterRedirects);
+      this.path.set(event.urlAfterRedirects);
+      if (this.overlay()) {
+        this.open.set(false);
+      }
     });
+  }
+
+  @HostListener('window:resize')
+  syncViewport(): void {
+    const overlay = window.innerWidth < 900;
+    this.overlay.set(overlay);
+    if (overlay) {
+      this.open.set(false);
+    }
+  }
+
+  toggle(): void {
+    this.open.update((value) => !value);
+    if (!this.overlay()) {
+      sessionStorage.setItem(RAIL_KEY, this.open() ? '1' : '0');
+    }
+  }
+
+  close(): void {
+    this.open.set(false);
   }
 
   signOut(): void {
     this.auth.clear();
   }
 
-  step(): DeskStep {
-    const path = this.url().split('?')[0];
+  initial(): string {
+    const name = this.auth.user()?.displayName || this.auth.user()?.email || 'U';
+    return name.slice(0, 1).toUpperCase();
+  }
+
+  title(): string {
+    const path = this.path().split('?')[0];
     if (path.startsWith('/admin')) {
-      return 'admin';
+      return 'Inventario';
     }
     if (path.startsWith('/notifications')) {
-      return 'inbox';
+      return 'Avisos';
     }
     if (path.startsWith('/checkout')) {
-      return 'pay';
+      return 'Pago';
     }
     if (path.startsWith('/reservations/new')) {
-      return 'create';
+      return 'Nueva reserva';
     }
     if (path.startsWith('/reservations')) {
-      return 'status';
+      return 'Reservas';
     }
     if (/^\/spaces\/[^/]+/.test(path)) {
-      return 'space';
+      return 'Sala';
     }
-    return 'search';
+    return 'Salas';
   }
 
-  deskTitle(): string {
-    switch (this.step()) {
-      case 'space':
-        return 'Dossier del espacio';
-      case 'create':
-        return 'Fichar la reserva';
-      case 'pay':
-        return 'Caja del campus';
-      case 'status':
-        return 'Stub de la reserva';
-      case 'inbox':
-        return 'Tablón de avisos';
-      case 'admin':
-        return 'Inventario';
-      default:
-        return 'Buscar un hueco';
-    }
-  }
-
-  deskCopy(): string {
-    switch (this.step()) {
-      case 'space':
-        return 'El periodo ya está escrito. Si el sello dice Libre, el hueco se puede fichar.';
-      case 'create':
-        return 'La ficha nace en PAYMENT_PENDING. Nadie ocupa el aula hasta que la caja confirme.';
-      case 'pay':
-        return 'Un Idempotency-Key. El mismo talón no cobra dos veces.';
-      case 'status':
-        return 'El stub queda. Si un aviso falla, la confirmación no se revierte.';
-      case 'inbox':
-        return 'Notas del mostrador. El tablón llama a las APIs dueñas; no lee sus tablas.';
-      case 'admin':
-        return 'Catálogo completo. USER no entra a este libro.';
-      default:
-        return 'Primero el periodo, después la sala. El campus no es una grilla de colores.';
-    }
-  }
-
-  owner(): string {
-    switch (this.step()) {
-      case 'space':
-        return 'space-service + availability-service';
-      case 'create':
-      case 'status':
-        return 'reservation-service';
-      case 'pay':
-        return 'payment-service';
-      case 'inbox':
-        return 'notification-service';
-      case 'admin':
-        return 'space-service';
-      default:
-        return 'space-service';
-    }
+  private readOpen(): boolean {
+    return sessionStorage.getItem(RAIL_KEY) !== '0';
   }
 }

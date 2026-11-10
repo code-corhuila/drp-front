@@ -15,12 +15,12 @@ export const STATE_LABELS: Record<ReservationState, string> = {
 };
 
 export const EVENT_LABELS: Record<string, string> = {
-  'user.registered': 'Alta en el mostrador',
-  ReservationCreated: 'Ficha abierta',
-  PaymentConfirmed: 'Caja confirmó',
-  PaymentFailed: 'Caja rechazó',
-  ReservationConfirmed: 'Stub confirmado',
-  ReservationCancelled: 'Ficha anulada',
+  'user.registered': 'Cuenta creada',
+  ReservationCreated: 'Reserva creada',
+  PaymentConfirmed: 'Pago confirmado',
+  PaymentFailed: 'Pago rechazado',
+  ReservationConfirmed: 'Reserva confirmada',
+  ReservationCancelled: 'Reserva cancelada',
 };
 
 export function formatCop(amountCents: number): string {

@@ -16,15 +16,14 @@ import { InjectFailureStore } from '../core/inject-failure';
   `,
   styles: `
     .inject-toggle {
-      border: 1px solid #d6c4a8;
-      background: var(--color-bg-card);
+      border: 1px solid var(--color-line);
+      background: #fff;
       color: var(--color-ink);
-      border-radius: var(--radius-md);
-      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      padding: 0.38rem 0.75rem;
       font-family: inherit;
       font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
+      font-weight: 650;
       cursor: pointer;
     }
 
