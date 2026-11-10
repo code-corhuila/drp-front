@@ -29,22 +29,18 @@ const ADMIN_ID = '66666666-6666-6666-6666-666666666666';
 const SALA_NORTE_ID = '11111111-1111-1111-1111-111111111111';
 const WORKSTATION_ID = '22222222-2222-2222-2222-222222222222';
 const AUDITORIO_ID = '77777777-7777-7777-7777-777777777777';
-const PASSWORD = 'Spacehub1!';
-
-const USERS: Array<User & { password: string }> = [
+const USERS: User[] = [
   {
     id: MEMBER_ID,
     email: 'member@spacehub.local',
     displayName: 'Ana Reserva',
     role: 'USER',
-    password: PASSWORD,
   },
   {
     id: ADMIN_ID,
     email: 'admin@spacehub.local',
     displayName: 'Admin SpaceHub',
     role: 'ADMIN',
-    password: PASSWORD,
   },
 ];
 
@@ -96,7 +92,7 @@ export class SyntheticSpacehubApi extends SpacehubApi {
       throw credentialsError();
     }
     const found = USERS.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!found || found.password !== password) {
+    if (!found) {
       throw credentialsError();
     }
     return {
@@ -116,7 +112,7 @@ export class SyntheticSpacehubApi extends SpacehubApi {
     if (!found) {
       throw apiError(401, { error: 'UNAUTHORIZED', message: 'Token de autenticación requerido' });
     }
-    return toPublicUser(found);
+    return found;
   }
 
   async listAvailableSpaces(query: ListSpacesQuery): Promise<ListEnvelope<Space>> {
@@ -468,10 +464,6 @@ function credentialsError(): ApiError {
     error: 'BUSINESS_RULE_VIOLATION',
     message: 'Usuario o contraseña incorrectos.',
   });
-}
-
-function toPublicUser(user: User & { password: string }): User {
-  return { id: user.id, email: user.email, displayName: user.displayName, role: user.role };
 }
 
 function apiError(status: number, body: ErrorResponse): ApiError {
