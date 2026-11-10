@@ -16,8 +16,10 @@ The shell listens on **http://localhost:4200**. Default data mode is **`live`** 
 
 Synthetic classroom accounts (not real people; not production credentials):
 
-- `member@spacehub.local` / `Spacehub1!` (USER · Ana Reserva)
-- `admin@spacehub.local` / `Spacehub1!` (ADMIN)
+- `member@spacehub.local` (USER · Member SpaceHub)
+- `admin@spacehub.local` (ADMIN)
+
+Live login uses `IDENTITY_SEED_PASSWORD` in `drp-identity-api` (see that repo `.env.example`). Do not paste it here. Synthetic/failover fixtures only check that the email is one of the two synthetic addresses and the password field is not empty.
 
 If the banner **Datos sintéticos — contrato 07-api; gateway no disponible** is visible, the UI is serving those fixtures. That is expected when the gateway is down; Corte 2 grades what the client sees.
 

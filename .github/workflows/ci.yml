@@ -20,3 +20,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Classroom seed password must not be in the tree
+        run: |
+          s='Spacehub'
+          s="${s}1!"
+          if git grep -F "$s"; then exit 1; fi
