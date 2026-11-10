@@ -55,6 +55,17 @@
         <app-inject-failure-toggle />
       </div>
     </header>
+    @if (injectFailure.on()) {
+      <p class="mode-banner inject" role="status">
+        Fallo 5xx inyectado. Las salas no cambian (son fixtures). La diferencia está al pulsar
+        Reservar o Pagar: 503 y ninguna ficha CONFIRMED (D-C14).
+      </p>
+    } @else if (auth.usingSynthetic()) {
+      <p class="mode-banner" role="status">
+        Gateway no disponible. Se listan fixtures. Reservar o pagar se rechaza: no se fabrica
+        CONFIRMED.
+      </p>
+    }
     <main class="layout">
       <section class="blotter">
         <router-outlet />

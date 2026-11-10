@@ -59,11 +59,29 @@ export class CheckoutPage implements OnInit {
         },
         this.idempotencyKey,
       );
+      await this.waitUntilConfirmed(reservation.id);
       await this.router.navigate(['/reservations', reservation.id]);
     } catch (err) {
       this.error.set(errorMessage(err));
     } finally {
       this.busy.set(false);
+    }
+  }
+
+  /** E-23: confirmation is the PaymentConfirmed hop, not POST /confirm. Poll GET until CONFIRMED. */
+  private async waitUntilConfirmed(reservationId: string): Promise<void> {
+    const deadline = Date.now() + 8_000;
+    while (Date.now() < deadline) {
+      try {
+        const latest = await this.api.getReservation(reservationId);
+        this.reservation.set(latest);
+        if (latest.state === 'CONFIRMED' || latest.state === 'CANCELLED') {
+          return;
+        }
+      } catch {
+        // Keep polling until the timeout; then navigate anyway.
+      }
+      await new Promise((resolve) => setTimeout(resolve, 400));
     }
   }
 }

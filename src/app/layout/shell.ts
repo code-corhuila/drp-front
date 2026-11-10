@@ -2,6 +2,7 @@ import { Component, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthStore } from '../core/auth-store';
+import { InjectFailureStore } from '../core/inject-failure';
 import { InjectFailureToggle } from './inject-failure-toggle';
 
 const RAIL_KEY = 'spacehub.railOpen';
@@ -14,6 +15,7 @@ const RAIL_KEY = 'spacehub.railOpen';
 })
 export class Shell {
   readonly auth = inject(AuthStore);
+  readonly injectFailure = inject(InjectFailureStore);
   private readonly router = inject(Router);
   readonly open = signal(this.readOpen());
   readonly overlay = signal(false);

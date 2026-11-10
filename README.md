@@ -12,7 +12,7 @@ npm install
 npm start
 ```
 
-The shell listens on **http://localhost:4200**. Default data mode is `failover` (`src/environments/environment.ts`): the client calls the gateway at `http://localhost:8080` and, on network error or 5xx, keeps working with **synthetic fixtures** that match the 07-api envelopes (`{data, meta}`, `{error, message, details?, traceId}`, money as `amountCents`, reservation states `PAYMENT_PENDING | CONFIRMED | CANCELLED`).
+The shell listens on **http://localhost:4200**. Default data mode is **`live`** (`src/environments/environment.ts`): the client talks only to the gateway at `http://localhost:8080`. Set `environment.mode` to `failover` if you need the Corte 2 safety net (HTTP first, synthetic fixtures on 5xx/network). `synthetic` is fixtures only.
 
 Synthetic classroom accounts (not real people; not production credentials):
 

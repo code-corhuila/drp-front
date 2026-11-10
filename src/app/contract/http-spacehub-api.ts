@@ -9,8 +9,11 @@ import { ApiError } from './api-error';
 import { SpacehubApi } from './spacehub-api';
 import {
   Availability,
+  BlockedPeriod,
+  BlockPeriodRequest,
   CreatePaymentRequest,
   CreateReservationRequest,
+  CreateSpaceRequest,
   ErrorResponse,
   ListEnvelope,
   ListNotificationsQuery,
@@ -73,6 +76,20 @@ export class HttpSpacehubApi extends SpacehubApi {
 
   getSpace(spaceId: string): Promise<Space> {
     return this.request<Space>('GET', `/api/v1/spaces/${spaceId}`);
+  }
+
+  createSpace(body: CreateSpaceRequest): Promise<Space> {
+    return this.request<Space>('POST', '/api/v1/spaces', { body });
+  }
+
+  listBlocks(spaceId: string, page = 1, limit = 20): Promise<ListEnvelope<BlockedPeriod>> {
+    return this.request<ListEnvelope<BlockedPeriod>>('GET', `/api/v1/spaces/${spaceId}/blocks`, {
+      params: { page, limit },
+    });
+  }
+
+  createBlock(spaceId: string, body: BlockPeriodRequest): Promise<BlockedPeriod> {
+    return this.request<BlockedPeriod>('POST', `/api/v1/spaces/${spaceId}/blocks`, { body });
   }
 
   createReservation(body: CreateReservationRequest, idempotencyKey: string): Promise<Reservation> {
@@ -167,7 +184,7 @@ export class HttpSpacehubApi extends SpacehubApi {
     if (!(error instanceof HttpErrorResponse)) {
       return error;
     }
-    if (error.status === 0 || error.status >= 500) {
+    if (error.status === 0) {
       return error;
     }
     const body = normalizeError(error.error, error.status);

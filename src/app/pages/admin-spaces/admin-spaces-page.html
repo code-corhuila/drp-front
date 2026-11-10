@@ -1,9 +1,46 @@
 <p class="kicker">Inventario</p>
 <h1>Espacios</h1>
-<p class="lead">Todas las salas disponibles para reservar.</p>
+<p class="lead">Registrar salas y bloquear periodos (HU-RES-008 / E-06 / E-08).</p>
 @if (error()) {
   <p class="error">{{ error() }}</p>
 }
+
+<form (ngSubmit)="createSpace()">
+  <label for="name">Nombre</label>
+  <input id="name" name="name" [(ngModel)]="name" required maxlength="200" />
+  <label for="kind">Tipo</label>
+  <select id="kind" name="kind" [(ngModel)]="kind">
+    @for (k of kinds; track k) {
+      <option [value]="k">{{ kindLabels[k] }}</option>
+    }
+  </select>
+  <label for="capacity">Cupos</label>
+  <input id="capacity" name="capacity" type="number" min="1" [(ngModel)]="capacity" required />
+  <label for="description">Descripción</label>
+  <input id="description" name="description" [(ngModel)]="description" />
+  <div class="actions">
+    <button class="btn" type="submit" [disabled]="busy()">Registrar espacio</button>
+  </div>
+</form>
+
+<form (ngSubmit)="createBlock()">
+  <label for="blockSpaceId">Espacio a bloquear</label>
+  <select id="blockSpaceId" name="blockSpaceId" [(ngModel)]="blockSpaceId">
+    @for (space of rows(); track space.id) {
+      <option [value]="space.id">{{ space.name }}</option>
+    }
+  </select>
+  <label for="blockStartAt">Inicio (RFC 3339 Z)</label>
+  <input id="blockStartAt" name="blockStartAt" [(ngModel)]="blockStartAt" placeholder="2026-11-03T08:00:00Z" required />
+  <label for="blockEndAt">Fin</label>
+  <input id="blockEndAt" name="blockEndAt" [(ngModel)]="blockEndAt" placeholder="2026-11-03T10:00:00Z" required />
+  <label for="blockReason">Motivo</label>
+  <input id="blockReason" name="blockReason" [(ngModel)]="blockReason" maxlength="500" />
+  <div class="actions">
+    <button class="btn sec" type="submit" [disabled]="busy() || !blockSpaceId">Bloquear periodo</button>
+  </div>
+</form>
+
 <table class="ledger">
   <thead>
     <tr>
